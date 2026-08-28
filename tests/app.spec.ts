@@ -130,3 +130,39 @@ test('390px layout does not overflow horizontally', async ({ page }, testInfo) =
   expect(sizes.scroll).toBeLessThanOrEqual(sizes.client);
   await expect(page.getByRole('button', { name: /Estimate/ }).first()).toBeVisible();
 });
+
+test('390px header and footer links meet touch-target and spacing requirements', async ({ page }, testInfo) => {
+  if (testInfo.project.name !== 'mobile') await page.setViewportSize({ width: 390, height: 844 });
+
+  const targets = await page.locator('.site-header a:visible, footer a:visible').evaluateAll((links) =>
+    links.map((link) => {
+      const bounds = link.getBoundingClientRect();
+      return {
+        name: link.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+        width: bounds.width,
+        height: bounds.height,
+      };
+    }),
+  );
+
+  expect(targets.map(({ name }) => name)).toEqual([
+    '⌁Math ToolingNotebook',
+    'Drills',
+    'Transfer quiz',
+    'Privacy',
+    'Terms',
+    'Source',
+  ]);
+  for (const target of targets) {
+    expect.soft(target.width, `${target.name} width`).toBeGreaterThanOrEqual(44);
+    expect.soft(target.height, `${target.name} height`).toBeGreaterThanOrEqual(44);
+  }
+
+  const gaps = await page.locator('.site-header nav, footer nav').evaluateAll((navs) =>
+    navs.flatMap((nav) => {
+      const links = [...nav.querySelectorAll<HTMLAnchorElement>('a')].filter((link) => link.getClientRects().length > 0);
+      return links.slice(1).map((link, index) => link.getBoundingClientRect().left - links[index].getBoundingClientRect().right);
+    }),
+  );
+  for (const gap of gaps) expect.soft(gap, 'adjacent target spacing').toBeGreaterThanOrEqual(8);
+});

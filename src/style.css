@@ -35,11 +35,12 @@ img { display: block; max-width: 100%; }
 .skip-link:focus { transform: translateY(0); }
 .offline-bar { position: sticky; z-index: 50; top: 0; padding: 8px 16px; background: var(--brass); color: var(--ink); text-align: center; font-weight: 750; }
 .site-header { position: relative; z-index: 10; display: flex; align-items: center; justify-content: space-between; max-width: 1240px; min-height: 88px; margin: 0 auto; padding: 16px 32px; border-bottom: 1px solid #47606a; }
-.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--paper-bright); font: 700 16px/1.05 var(--serif); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+.brand { display: inline-flex; min-height: 44px; align-items: center; gap: 10px; color: var(--paper-bright); font: 700 16px/1.05 var(--serif); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+.site-header > .brand { min-width: 44px; }
 .brand small { color: var(--brass); font: 700 11px/1 var(--sans); letter-spacing: .25em; }
 .brand-mark { display: grid; width: 44px; height: 44px; place-items: center; border: 2px solid var(--brass); border-radius: 50%; color: var(--coral); font: 26px/1 var(--serif); }
 .site-header nav, footer nav { display: flex; gap: 28px; }
-.site-header nav a, footer nav a { color: var(--muted-night); font-size: 14px; font-weight: 700; letter-spacing: .04em; }
+.site-header nav a, footer nav a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; color: var(--muted-night); font-size: 14px; font-weight: 700; letter-spacing: .04em; }
 .site-header nav a:hover, footer nav a:hover { color: var(--paper-bright); }
 
 main { overflow: hidden; }
@@ -277,6 +278,10 @@ footer nav { justify-content: flex-end; }
   .answer-feedback { display: block; margin: 10px 0 0; }
   .scratch-actions { align-items: start; flex-direction: column; }
   .scratch-actions > span { margin-bottom: 4px; }
+}
+
+@media (max-width: 350px) {
+  .site-header > .brand > span:last-child { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
