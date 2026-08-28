@@ -1,0 +1,12 @@
+{
+  "slug": "math-tooling-notebook",
+  "title": "Math Tooling Notebook",
+  "territory": "utilities",
+  "user": "An adult returning to mathematics who needs hands-on fluency with graphs, symbolic notation, estimates, and checks before tackling a formal course.",
+  "smallest_useful_product": "Static web notebook with 20 tool-literacy drills, an embedded function plotter, scratchpad, estimation reveal, and local progress.",
+  "success_measure": "At least 50% of new users complete five drills and correctly choose graph, table, estimate, or algebraic check on a six-question transfer quiz.",
+  "artifact_class": "static-web",
+  "monetization": "free",
+  "constraints": "Permissively licensed math rendering/plotting only; WCAG-friendly graph alternatives; no exam-prep claims.",
+  "state": "RESEARCHED"
+}
