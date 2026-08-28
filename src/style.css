@@ -91,8 +91,10 @@ h4 { margin-bottom: 20px; color: var(--paper-ink); font-size: 1.2rem; line-heigh
 .section-heading p { margin-bottom: 0; color: var(--muted-paper); }
 .progress-summary { min-width: 220px; color: var(--muted-paper); text-align: right; }
 .progress-summary strong { color: var(--paper-ink); font-size: 1.5rem; }
-.progress-track { width: 220px; height: 8px; margin-top: 8px; border: 1px solid var(--night); background: #ded4bf; }
-.progress-track i { display: block; height: 100%; background: var(--coral-dark); transition: width 240ms ease; }
+.progress-track { display: block; width: 220px; height: 10px; margin-top: 8px; overflow: hidden; border: 1px solid var(--night); border-radius: 0; background: #ded4bf; color: var(--coral-dark); appearance: none; }
+.progress-track::-webkit-progress-bar { background: #ded4bf; }
+.progress-track::-webkit-progress-value { background: var(--coral-dark); }
+.progress-track::-moz-progress-bar { background: var(--coral-dark); }
 .workbench { display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); align-items: start; gap: clamp(28px, 6vw, 76px); }
 .route-map { position: relative; max-height: 680px; overflow: auto; padding: 4px 12px 24px 4px; scrollbar-color: var(--coral-dark) #ded4bf; }
 .route-map::before { content: ""; position: absolute; z-index: 0; top: 48px; bottom: 30px; left: 26px; width: 5px; background: var(--coral-dark); box-shadow: 9px 0 0 var(--aqua), 18px 0 0 var(--lilac), 27px 0 0 var(--brass); }

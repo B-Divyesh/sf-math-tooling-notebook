@@ -24,7 +24,6 @@ function persist(): void {
 function render(): void {
   const drill = drills[currentId - 1];
   const completedCount = progress.completed.length;
-  const percent = Math.round((completedCount / drills.length) * 100);
   root.innerHTML = `
     <div class="offline-bar" id="offline-bar" role="status" hidden>You’re offline. The notebook still works; progress stays on this device.</div>
     <header class="site-header">
@@ -69,7 +68,7 @@ function render(): void {
           <div><p class="eyebrow">Your route map</p><h2 id="practice-title">Twenty practice stations</h2></div>
           <div class="progress-summary" aria-label="${completedCount} of 20 drills complete">
             <span><strong>${completedCount}</strong> / 20 complete</span>
-            <div class="progress-track" role="progressbar" aria-label="Drills completed" aria-valuemin="0" aria-valuemax="20" aria-valuenow="${completedCount}"><i style="width:${percent}%"></i></div>
+            <progress class="progress-track" aria-label="Drills completed" max="${drills.length}" value="${completedCount}">${completedCount} of ${drills.length}</progress>
           </div>
         </div>
         <div class="workbench">
@@ -220,6 +219,7 @@ root.addEventListener('click', (event) => {
     document.querySelector('#drill-title')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   } else if (target.dataset.tool) {
     selectedTool = target.dataset.tool as Tool; drillFeedback = ''; drillCorrect = false; render();
+    document.querySelector<HTMLElement>(`[data-tool="${selectedTool}"]`)?.focus();
     document.querySelector('.tool-feedback')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } else {
     handleAction(target.dataset.action!);
