@@ -1,18 +1,32 @@
-# Handoff\n\n(written by the worker at the end of each work order)
-# Math Tooling Notebook — build handoff
+# Math Tooling Notebook — repair handoff
 
-## Shipped
+## Repair outcome
 
-- A finished static Vite + TypeScript notebook for the adult-returner job in the research brief.
-- 20 numbered drills across Estimate, Table, Graph, and Algebra routes. Every drill asks for a tool choice, explains why that tool leads, provides an appropriate work surface, checks an answer, and records completion locally.
-- A standalone, responsive function plotter with adjustable ranges, a purpose-built expression parser, clear syntax errors, discontinuity handling, and a value-table alternative for every graph.
-- A six-question transfer quiz with explanations and the brief’s 5/6 success target.
-- A locally saved scratchpad with autosave, text export, confirmed deletion, and full-notebook reset.
-- First-class new-user, invalid-expression, storage-error, and offline states. A service worker caches the app shell after the first successful visit.
-- Responsive art-deco transit-poster visual system, an original generated hero illustration, keyboard/focus treatment, reduced-motion behavior, and 390px mobile layout.
-- Local-first privacy notice, terms, MIT license, manifest, robots/sitemap, Azure Static Web Apps headers and cache rules, and expanded contributor/deployment docs.
+Candidate `8415f8660a5fdb57ae67851a1c4ff8e630762aac` was repaired and redeployed as the same `static-web` artifact at <https://math-tooling-notebook.sociobot.in>.
 
-## Verification
+The failure was a runtime `style="width:…"` attribute on the drill progress fill while Azure served `style-src 'self'`. The production browser correctly rejected that attribute. The repair keeps the policy unchanged and strict: the progress display is now a semantic `<progress>` element styled entirely by the external stylesheet. No hash, nonce, or `unsafe-inline` exception was added.
+
+The release also rotates the offline cache, makes navigations network-first with an offline fallback, prevents conditional `304` responses from creating empty precache entries, and preserves keyboard focus when a tool choice rerenders the workbench. These changes ensure returning offline users can move off the failed candidate safely.
+
+## Failure reproduction
+
+Before the repair, the factory verifier was run against the live candidate:
+
+```text
+GET https://math-tooling-notebook.sociobot.in -> 200
+errors: ["Applying inline style violates the following Content Security Policy directive 'style-src 'self''…"]
+exit: 1
+```
+
+The deployed JavaScript contained `<i style="width:${percent}%">`, matching the browser report. The live response already had the intended strict policy, so the root cause was application markup rather than deployment configuration.
+
+## Regression coverage
+
+- The Vite production preview imports and serves the CSP directly from `public/staticwebapp.config.json`, so browser tests exercise the deployment policy.
+- The focused CSP check asserts `style-src 'self'`, rejects `unsafe-inline`, finds zero rendered `[style]` attributes, exercises the progress value, and fails on CSP console messages.
+- Browser coverage also checks keyboard focus continuity, service-worker activation/update and non-empty cached assets, a true offline reload, local-only storage/no third-party requests, Axe serious/critical findings, desktop/mobile flows, legal pages, and 390 px overflow.
+
+## Verification evidence
 
 Run from a clean checkout with Node.js 20+:
 
@@ -22,21 +36,33 @@ npm test
 npm run build
 ```
 
-- `npm test`: **8 unit tests + 10 Playwright checks passed** across desktop Chromium and a 390×844 mobile Chromium profile. Checks cover parser safety/precedence, curriculum integrity, end-to-end drill completion and persistence, plotter errors/recovery, legal routes, overflow, and Axe accessibility.
-- `npm run build`: passed. Output is `dist/` with `dist/index.html` at its root.
+Results on 2026-08-28:
+
+- `npm ci`: 59 packages installed; 0 vulnerabilities.
+- `npm test`: 8/8 Vitest unit tests and 18/18 Playwright tests passed across desktop Chromium and the 390×844 mobile profile.
+- Focused CSP regression: 2/2 desktop/mobile checks passed.
+- `npm run build` (the original production build command): passed; `dist/index.html` is at the deployment root.
 - `npm audit --audit-level=high`: 0 vulnerabilities.
-- Factory `verify-url.sh`: HTTP 200, 535 ms local load, no browser console errors, one `<h1>`, title/lang/main present, 0 missing image alts, and 0 unlabeled buttons.
-- Lighthouse 12.8.2, mobile defaults against the production preview: **Performance 100, Accessibility 100, Best Practices 100, SEO 100**. FCP 0.9 s, LCP 1.2 s, TBT 40 ms, CLS 0, Speed Index 0.9 s.
-- Production payload: 33.78 KB JS / 12.68 KB gzip; 20.97 KB CSS / 5.45 KB gzip; 0 KB web fonts. Responsive hero WebP is 16 KB mobile / 28 KB large.
-- Generated artwork was visually reviewed for text artifacts, brands, unintended symbols, and seams. Prompt/model/date and review are in `.factory/design.md` and `assets/src/math-railway.prompt.json`.
+- Built-markup scan: zero inline `style` attributes.
+- Production payload: 33.77 KB raw / 12.66 KB gzip JavaScript; 21.15 KB raw / 5.49 KB gzip CSS; 0 KB fonts. This is below the 200 KB JS and 50 KB CSS budgets.
+- Factory local `verify-url.sh`: HTTP 200, zero console errors, title and `lang` present, one `<h1>`, `<main>` present, 0 missing image alts, and 0 unlabeled buttons.
+- Lighthouse 12.8.2 mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.1 s, TBT 50 ms, CLS 0, Speed Index 0.9 s.
+- Desktop and mobile screenshots were visually reviewed; the native progress treatment remains consistent with the midnight railway system and does not overflow.
+
+## Deployment and live identity
+
+- Repair commit deployed: `97b2ceb` (`fix: remove CSP-blocked progress style`).
+- Deployment command: `/opt/fleet/lib/deploy-static.sh math-tooling-notebook dist`.
+- Azure Static Web Apps deployment ID: `37dd2b12-7082-4e91-85fb-18f5e4c3db7d`.
+- Azure host: `gentle-moss-0ea1beb0f.7.azurestaticapps.net`; custom domain status: `Ready`.
+- Live asset identity: `assets/index-BFUjQFE5.js` and `assets/index-TJCa1_RA.css`.
+- Live CSP: `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`.
+- Post-deploy factory verifier: HTTP 200 in 870 ms, `errors: []`, title `Math Tooling Notebook — practise the tools around mathematics`, `lang="en"`, one `<h1>`, `<main>` present, 0 missing image alts, and 0 unlabeled buttons.
 
 ## Known boundaries
 
-- The plotter intentionally handles one explicit real-valued function at a time; comparison drills plot a difference function. It is a sampled inspection aid, not a CAS or safety-critical calculator.
-- Progress is intentionally device/browser-local and does not sync. Private browsing or cleared site data removes it; scratchpad export is the portable option.
-- Offline use begins after one successful online visit so the service worker can cache the versioned shell.
+- The plotter remains a sampled, real-valued inspection aid rather than a computer algebra system.
+- Progress remains device/browser-local and does not sync. Clearing site data removes it; scratchpad export is the portable option.
+- Offline use starts after one successful online visit so the versioned shell can be cached.
 
-## Suggested next steps
-
-- Observe anonymous aggregate page views and the stated five-drill/5-of-6 outcomes only if the factory adds a privacy-preserving, consent-appropriate counter later.
-- User-test the wording with adult returners before expanding the drill set; resist turning the utility into a full curriculum.
+No repair-specific gaps remain.
