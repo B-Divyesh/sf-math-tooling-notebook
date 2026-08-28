@@ -43,7 +43,7 @@ test('legal pages are present and navigable', async ({ page }) => {
 });
 
 test('390px layout does not overflow horizontally', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile');
+  if (testInfo.project.name !== 'mobile') await page.setViewportSize({ width: 390, height: 844 });
   const sizes = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
   expect(sizes.scroll).toBeLessThanOrEqual(sizes.client);
   await expect(page.getByRole('button', { name: /Estimate/ }).first()).toBeVisible();

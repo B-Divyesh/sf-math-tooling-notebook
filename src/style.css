@@ -29,6 +29,7 @@ img { display: block; max-width: 100%; }
 [hidden] { display: none !important; }
 :focus-visible { outline: 3px solid var(--brass); outline-offset: 4px; }
 ::selection { background: var(--brass); color: var(--ink); }
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 
 .skip-link { position: fixed; z-index: 100; left: 16px; top: 12px; padding: 12px 18px; background: var(--brass); color: var(--ink); font-weight: 800; transform: translateY(-160%); }
 .skip-link:focus { transform: translateY(0); }
@@ -93,7 +94,7 @@ h4 { margin-bottom: 20px; color: var(--paper-ink); font-size: 1.2rem; line-heigh
 .progress-track { width: 220px; height: 8px; margin-top: 8px; border: 1px solid var(--night); background: #ded4bf; }
 .progress-track i { display: block; height: 100%; background: var(--coral-dark); transition: width 240ms ease; }
 .workbench { display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); align-items: start; gap: clamp(28px, 6vw, 76px); }
-.route-map { position: relative; max-height: 890px; overflow: auto; padding: 4px 12px 24px 4px; scrollbar-color: var(--coral-dark) #ded4bf; }
+.route-map { position: relative; max-height: 680px; overflow: auto; padding: 4px 12px 24px 4px; scrollbar-color: var(--coral-dark) #ded4bf; }
 .route-map::before { content: ""; position: absolute; z-index: 0; top: 48px; bottom: 30px; left: 26px; width: 5px; background: var(--coral-dark); box-shadow: 9px 0 0 var(--aqua), 18px 0 0 var(--lilac), 27px 0 0 var(--brass); }
 .zone-label { position: relative; z-index: 1; margin: 24px 0 8px; padding: 3px 8px; background: var(--paper); color: var(--muted-paper); font-size: 11px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
 .zone-label:first-child { margin-top: 0; }
@@ -218,7 +219,8 @@ footer nav { justify-content: flex-end; }
   .method { grid-template-columns: 1fr; gap: 32px; }
   .workbench { grid-template-columns: 1fr; }
   .route-map { display: flex; max-width: 100%; max-height: none; gap: 8px; overflow-x: auto; padding-bottom: 12px; }
-  .route-map::before, .route-map .zone-label, .station em, .station > i { display: none; }
+  .route-map::before, .route-map .zone-label, .station > i { display: none; }
+  .station em { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
   .station { display: grid; flex: 0 0 52px; grid-template-columns: 1fr; width: 52px; min-height: 52px; padding: 4px; }
   .station > span { margin: auto; }
   .station b { position: absolute; right: 0; bottom: 0; }

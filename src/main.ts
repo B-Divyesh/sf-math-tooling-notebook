@@ -47,8 +47,7 @@ function render(): void {
         </div>
         <figure class="poster-frame">
           <picture>
-            <source media="(max-width: 700px)" srcset="/assets/math-railway-400.webp" />
-            <img src="/assets/math-railway.webp" width="600" height="900" alt="Abstract art-deco railway lines become four mathematical curves above an open notebook and drafting compass." decoding="async" fetchpriority="high" />
+            <img src="/assets/math-railway.webp" srcset="/assets/math-railway-400.webp 400w, /assets/math-railway.webp 600w" sizes="(max-width: 700px) min(88vw, 360px), 390px" width="600" height="900" alt="Abstract art-deco railway lines become four mathematical curves above an open notebook and drafting compass." decoding="async" fetchpriority="high" />
           </picture>
           <figcaption>Four lines. One practical way into mathematical work.</figcaption>
         </figure>
@@ -148,7 +147,7 @@ function routeMarkup(active: number, completed: number[]): string {
   return drills.map((drill) => {
     const zone = drill.zone !== lastZone ? `<p class="zone-label">${(lastZone = drill.zone)}</p>` : '';
     const done = completed.includes(drill.id);
-    return `${zone}<button type="button" class="station ${drill.id === active ? 'active' : ''} ${done ? 'done' : ''}" data-drill="${drill.id}" aria-label="Station ${String(drill.id).padStart(2, '0')}: ${escapeText(drill.title)}. ${done ? 'Complete' : 'Not complete'}" aria-current="${drill.id === active ? 'step' : 'false'}"><span>${String(drill.id).padStart(2, '0')}</span><i class="line-${drill.tool}" aria-hidden="true"></i><em>${escapeText(drill.title)}</em><b aria-hidden="true">${done ? '✓' : '○'}</b></button>`;
+    return `${zone}<button type="button" class="station ${drill.id === active ? 'active' : ''} ${done ? 'done' : ''}" data-drill="${drill.id}" aria-current="${drill.id === active ? 'step' : 'false'}"><span>${String(drill.id).padStart(2, '0')}</span><i class="line-${drill.tool}" aria-hidden="true"></i><em>${escapeText(drill.title)}</em><b aria-hidden="true">${done ? '✓' : '○'}</b><small class="sr-only">${done ? 'Complete' : 'Not complete'}</small></button>`;
   }).join('');
 }
 
