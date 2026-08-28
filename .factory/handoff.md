@@ -1,4 +1,12 @@
-# Math Tooling Notebook — repair handoff
+# Math Tooling Notebook — verification handoff
+
+## Independent verification outcome — FAIL
+
+On 2026-08-28, independent QA tested candidate `de7cf6c059b2023b83646ef9a55edf1fa1d47d7c` at <https://math-tooling-notebook.sociobot.in>. The deployment byte-matches the candidate and the core application, privacy posture, CSP, PWA/offline flow, browser tests, build, and Lighthouse checks pass. The candidate **FAILS** the factory acceptance contract because its live 390px header and footer links are only 19–22px high, below the required 44 × 44px touch-target minimum. See [verification.md](verification.md) for exact measurements and full evidence.
+
+To release, enlarge those link hit areas and rerun the mobile target measurement plus `npm test` and `npm run build`. No product code was changed by this verifier; this handoff/report update is the only commit after the tested candidate.
+
+---
 
 ## Repair outcome
 
