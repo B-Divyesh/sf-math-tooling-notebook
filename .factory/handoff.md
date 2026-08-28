@@ -1,38 +1,28 @@
-# Math Tooling Notebook — verification handoff
+# Math Tooling Notebook — repair handoff
 
-## Independent verification outcome — FAIL
+## Outcome
 
-On 2026-08-28, independent QA tested candidate `de7cf6c059b2023b83646ef9a55edf1fa1d47d7c` at <https://math-tooling-notebook.sociobot.in>. The deployment byte-matches the candidate and the core application, privacy posture, CSP, PWA/offline flow, browser tests, build, and Lighthouse checks pass. The candidate **FAILS** the factory acceptance contract because its live 390px header and footer links are only 19–22px high, below the required 44 × 44px touch-target minimum. See [verification.md](verification.md) for exact measurements and full evidence.
+Work order `math-tooling-notebook-repair-2` repairs every release-blocking finding in independent report commit `56f193cd21203b2a0afdbf94c72cafd88e6de282` for candidate `de7cf6c059b2023b83646ef9a55edf1fa1d47d7c`.
 
-To release, enlarge those link hit areas and rerun the mobile target measurement plus `npm test` and `npm run build`. No product code was changed by this verifier; this handoff/report update is the only commit after the tested candidate.
+The reported 390px touch-target failure is fixed. Header and footer anchors now use real 44 × 44px minimum boxes while retaining the existing midnight-railway visual treatment. The linked brand also receives the same minimum height, and its wordmark collapses below 350px so the supported 320px floor keeps safe target separation. The artifact remains a Vite/TypeScript `static-web` build with `dist/index.html` at its root.
 
----
+Implementation commit: `291329f` (`fix: meet mobile touch target contract`).
 
-## Repair outcome
+## Reproduction and regression coverage
 
-Candidate `8415f8660a5fdb57ae67851a1c4ff8e630762aac` was repaired and redeployed as the same `static-web` artifact at <https://math-tooling-notebook.sociobot.in>.
+Before the repair, the local production build reproduced the verifier's live values exactly:
 
-The failure was a runtime `style="width:…"` attribute on the drill progress fill while Azure served `style-src 'self'`. The production browser correctly rejected that attribute. The repair keeps the policy unchanged and strict: the progress display is now a semantic `<progress>` element styled entirely by the external stylesheet. No hash, nonce, or `unsafe-inline` exception was added.
+| Target | Before | Live after repair |
+| --- | ---: | ---: |
+| Drills | 32.91 × 18.59px | 44 × 44px |
+| Transfer quiz | 80.94 × 18.59px | 80.94 × 44px |
+| Privacy | 53.75 × 21.69px | 53.75 × 44px |
+| Terms | 43.80 × 21.69px | 44 × 44px |
+| Source | 50.83 × 21.69px | 50.83 × 44px |
 
-The release also rotates the offline cache, makes navigations network-first with an offline fallback, prevents conditional `304` responses from creating empty precache entries, and preserves keyboard focus when a tool choice rerenders the workbench. These changes ensure returning offline users can move off the failed candidate safely.
+The root cause was that these anchors remained inline text boxes; their parents supplied visual spacing but no tappable height. They are now centered `inline-flex` targets with 44px minimum width and height.
 
-## Failure reproduction
-
-Before the repair, the factory verifier was run against the live candidate:
-
-```text
-GET https://math-tooling-notebook.sociobot.in -> 200
-errors: ["Applying inline style violates the following Content Security Policy directive 'style-src 'self''…"]
-exit: 1
-```
-
-The deployed JavaScript contained `<i style="width:${percent}%">`, matching the browser report. The live response already had the intended strict policy, so the root cause was application markup rather than deployment configuration.
-
-## Regression coverage
-
-- The Vite production preview imports and serves the CSP directly from `public/staticwebapp.config.json`, so browser tests exercise the deployment policy.
-- The focused CSP check asserts `style-src 'self'`, rejects `unsafe-inline`, finds zero rendered `[style]` attributes, exercises the progress value, and fails on CSP console messages.
-- Browser coverage also checks keyboard focus continuity, service-worker activation/update and non-empty cached assets, a true offline reload, local-only storage/no third-party requests, Axe serious/critical findings, desktop/mobile flows, legal pages, and 390 px overflow.
+`tests/app.spec.ts` now measures every visible header/footer anchor at 390 × 844 in both browser projects, asserts the exact expected target set, requires width and height ≥44px, and requires gaps ≥8px. Live gaps are 14px in the primary navigation and 28px in the legal navigation. The 390px document remains 390/390px with no horizontal overflow.
 
 ## Verification evidence
 
@@ -42,35 +32,38 @@ Run from a clean checkout with Node.js 20+:
 npm ci
 npm test
 npm run build
+npm audit --audit-level=high
 ```
 
 Results on 2026-08-28:
 
-- `npm ci`: 59 packages installed; 0 vulnerabilities.
-- `npm test`: 8/8 Vitest unit tests and 18/18 Playwright tests passed across desktop Chromium and the 390×844 mobile profile.
-- Focused CSP regression: 2/2 desktop/mobile checks passed.
-- `npm run build` (the original production build command): passed; `dist/index.html` is at the deployment root.
-- `npm audit --audit-level=high`: 0 vulnerabilities.
-- Built-markup scan: zero inline `style` attributes.
-- Production payload: 33.77 KB raw / 12.66 KB gzip JavaScript; 21.15 KB raw / 5.49 KB gzip CSS; 0 KB fonts. This is below the 200 KB JS and 50 KB CSS budgets.
-- Factory local `verify-url.sh`: HTTP 200, zero console errors, title and `lang` present, one `<h1>`, `<main>` present, 0 missing image alts, and 0 unlabeled buttons.
-- Lighthouse 12.8.2 mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.1 s, TBT 50 ms, CLS 0, Speed Index 0.9 s.
-- Desktop and mobile screenshots were visually reviewed; the native progress treatment remains consistent with the midnight railway system and does not overflow.
+- `npm ci`: 59 packages installed, 0 vulnerabilities.
+- `npm test`: 8/8 Vitest tests and 20/20 Playwright tests passed across desktop Chromium and the 390 × 844 mobile/touch profile.
+- Browser coverage passed drill completion/persistence, plotter error recovery, strict CSP, keyboard focus continuity, legal routes, 390px overflow, the exact touch-target regression, service-worker update, true offline reload, local-only storage, third-party request detection, and Axe serious/critical checks.
+- `npm run build`: TypeScript no-emit check and Vite production build passed. There is no separate lint script. Package/consumer testing is not applicable to this static application.
+- `npm audit --audit-level=high`: 0 vulnerabilities. `git diff --check`: clean.
+- Production payload: 33,765-byte JS (12.66 KB gzip), 21,364-byte CSS (5.51 KB gzip), no webfonts, and a 15,010-byte mobile hero image; all remain within the product budgets.
+- Local factory `verify-url.sh`: HTTP 200, no console/page errors, title and `lang` present, one `<h1>`, `<main>` present, 0 missing image alts, and 0 unlabeled buttons.
+- Desktop and full-page 390px screenshots were reviewed; navigation hierarchy and spacing remain consistent with `.factory/design.md`.
+- Live Lighthouse 13.4.1 mobile: Performance **100**, Accessibility **100**, Best Practices **100**, SEO **100**; FCP 1.1s, LCP 1.1s, TBT 0ms, CLS 0, Speed Index 1.1s.
 
-## Deployment and live identity
+## Live policy, privacy, offline, and identity
 
-- Repair commit deployed: `97b2ceb` (`fix: remove CSP-blocked progress style`).
-- Deployment command: `/opt/fleet/lib/deploy-static.sh math-tooling-notebook dist`.
-- Azure Static Web Apps deployment ID: `37dd2b12-7082-4e91-85fb-18f5e4c3db7d`.
+- Deployed with `/opt/fleet/lib/deploy-static.sh math-tooling-notebook dist`.
+- Azure deployment ID: `21c2d7fa-ad18-40a2-ae56-a5b0d6d77de7`.
 - Azure host: `gentle-moss-0ea1beb0f.7.azurestaticapps.net`; custom domain status: `Ready`.
-- Live asset identity: `assets/index-BFUjQFE5.js` and `assets/index-TJCa1_RA.css`.
-- Live CSP: `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`.
-- Post-deploy factory verifier: HTTP 200 in 870 ms, `errors: []`, title `Math Tooling Notebook — practise the tools around mathematics`, `lang="en"`, one `<h1>`, `<main>` present, 0 missing image alts, and 0 unlabeled buttons.
+- Live URL: <https://math-tooling-notebook.sociobot.in/>.
+- Post-deploy `verify-url.sh`: HTTP 200 in 779ms, no console/page errors, correct title/`lang`, one `<h1>`, `<main>`, 0 missing image alts, and 0 unlabeled buttons.
+- Live 390px keyboard smoke: first Tab focuses “Skip to notebook” with a 3px brass outline. Reduced-motion animation duration is effectively disabled (`1e-05s`). Axe reports 0 serious/critical violations.
+- Live privacy smoke: no cookies, analytics, third-party requests, CDN scripts, or fonts. Scratchpad data creates only `math-tooling-notebook:v1` in `localStorage`.
+- The live service worker controls the page, uses `math-tooling-notebook-v2`, and reloads successfully offline with the offline notice visible.
+- HTTPS responses retain HSTS, `nosniff`, strict-origin referrer policy, camera/microphone/geolocation permissions policy, and the strict self-only CSP. Root HTML is short-cached; hashed assets are immutable for one year.
+- Live assets byte-match `dist`: HTML SHA-256 `128da8545a032eba8d8d18d13eb9db9dc8ca4e07bca1451c73f9c4f8f7d04890`; CSS `index-aLuAqVlB.css` SHA-256 `aa3a11cbf4ee3feeb2a0e71a64e42066de0d1cfc947c806f2db4a5df0e9fdb9e`; JS `index-Dtj1Mkuf.js` SHA-256 `c017483862ec170b06e04664277050145edf8b28045a80d56e2ffc12b38af971`.
 
 ## Known boundaries
 
-- The plotter remains a sampled, real-valued inspection aid rather than a computer algebra system.
-- Progress remains device/browser-local and does not sync. Clearing site data removes it; scratchpad export is the portable option.
+- The plotter is a sampled, real-valued inspection aid rather than a computer algebra system.
+- Progress is device/browser-local and does not sync. Clearing site data removes it; scratchpad export is the portable option.
 - Offline use starts after one successful online visit so the versioned shell can be cached.
 
 No repair-specific gaps remain.
