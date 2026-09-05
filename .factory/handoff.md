@@ -1,10 +1,16 @@
-# Math Tooling Notebook — repair handoff
+# Math Tooling Notebook — review handoff
 
 ## Status
 
-**Ready for review.** The implementation commit is `e46de7eb48ad295357549cedb83ba4ce44b529a7`. It was deployed to <https://math-tooling-notebook.sociobot.in> on 2026-09-05. The live root HTML and deployed JavaScript byte-match the final local `dist/` build.
+**Review 2: FAIL.** The implementation commit remains `e46de7eb48ad295357549cedb83ba4ce44b529a7`. It was deployed to <https://math-tooling-notebook.sociobot.in> on 2026-09-05. The live root HTML and deployed JavaScript still byte-match the final local `dist/` build.
 
-This document is committed separately from the implementation so review evidence does not change the deployed artifact. The documentation verification commit is `2c3e8f9091935d7bf8d9788b8a48087213d9376c`; this final attestation only records that SHA.
+The strict review found no product-code, live-runtime, accessibility, privacy, offline, or claim failure. It found one low-severity documentation defect: `.factory/copy-audit.md` is not a complete, exact extraction of the shipped landing copy. There are zero untested claims. See [review-2.md](review-2.md).
+
+## Strict review 2
+
+**FAIL on 2026-09-05: 1 low finding, 0 untested claims.** The review used fresh desktop and phone contexts, reran the documented clean setup and every claim command separately, and proved all earlier product findings remain resolved.
+
+The required copy audit records “Pick the simplest useful view,” while the product says “Pick the lightest useful view.” It also omits other visible sentences. Regenerate `.factory/copy-audit.md` from the shipped copy with every sentence, exact text, word counts, and banned-word results. Product code was not changed during this review.
 
 ## Independent verification 3
 
@@ -63,4 +69,4 @@ Use `/demo` for the one-click sample. See [README.md](../README.md), [demo.md](d
 
 ## Known gaps and next steps
 
-There are no known functional, accessibility, privacy, or deployment gaps from this repair. The brief’s adoption measure—half of new users completing five drills and choosing five of six quiz tools—requires privacy-respecting aggregate product research outside this local-first, no-analytics build. The app intentionally records no visitor analytics, so it does not claim that outcome has occurred.
+There are no known functional, accessibility, privacy, claim, or deployment gaps. Before acceptance, repair and recheck the incomplete `.factory/copy-audit.md` documentation described in review 2. The brief’s adoption measure—half of new users completing five drills and choosing five of six quiz tools—requires privacy-respecting aggregate product research outside this local-first, no-analytics build. The app intentionally records no visitor analytics, so it does not claim that outcome has occurred.
