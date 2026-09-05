@@ -6,6 +6,12 @@
 
 This document is committed separately from the implementation so review evidence does not change the deployed artifact. The documentation verification commit is `2c3e8f9091935d7bf8d9788b8a48087213d9376c`; this final attestation only records that SHA.
 
+## Independent verification 3
+
+**PASS on 2026-09-05.** The independent verifier reviewed implementation `e46de7eb48ad295357549cedb83ba4ce44b529a7` and documentation verification `2c3e8f9091935d7bf8d9788b8a48087213d9376c`; the report base was `349a268cf5e507e9305885f7eba9158cfab9ff85`.
+
+It reran `npm ci`, `npm test` (9 unit and 46 browser executions), `npm run build`, and all 11 declared claim commands individually. Fresh live desktop and 390px phone checks covered the first screen, the isolated demo and reset/exit path, correct Station 02 maths, invalid/boundary/recovery plotter paths, quiz, keyboard/focus, reduced motion, touch targets, privacy requests, live offline/update behavior, legal pages, route titles, and the designed HTTP 404. Root, Demo, Privacy, Terms, and 404 had zero serious or critical Axe violations. There were **zero findings and zero untested claims**. See [verification-3.md](verification-3.md).
+
 ## Product job, audience, and first action
 
 - **Job:** help people choose whether to estimate, make a table, draw a graph, or check algebra.
