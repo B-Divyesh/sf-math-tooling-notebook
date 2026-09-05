@@ -1,8 +1,10 @@
-# Math Tooling Notebook — repair handoff
+# Math Tooling Notebook — verification 4 handoff
 
 ## Status
 
-**PASS — ready for strict re-review.** The one outstanding low-severity finding is resolved. The product implementation remains `e46de7eb48ad295357549cedb83ba4ce44b529a7`; this repair's audit and browser-regression commit is `d2b79c88cd2f90c80189f1afeb6b754bb8348d08`. No shipped application asset changed.
+**PASS — independent verification complete with zero findings and zero untested claims.** The product implementation remains `e46de7eb48ad295357549cedb83ba4ce44b529a7`; the audit and browser-regression repair is `d2b79c88cd2f90c80189f1afeb6b754bb8348d08`; documentation reviewed through `ecfdf20fffa9905940df65505555f19317a0a5ab`. No shipped application asset changed.
+
+Verification 4 repeated the live desktop and phone sample flows in fresh contexts, ran all 11 claim commands separately, ran the full 9-unit/48-browser suite, built `dist/`, checked all prior findings, and compared fresh output with HTTPS. Live mobile Lighthouse scored 99/100/100/100 with 1.12s LCP and zero CLS. Root, Demo, Privacy, Terms, and the designed HTTP 404 had zero serious or critical Axe findings. See [verification-4.md](verification-4.md).
 
 The prior review found that `.factory/copy-audit.md` was stale (`Pick the simplest useful view` rather than the shipped `Pick the lightest useful view`) and omitted landing-page copy. The regenerated audit is an exact inventory of fresh `/` copy: header, first screen, method, all initial drill labels, first drill, plotter, quiz, notes, reset, footer, image description, and input help. Every entry has an exact word count and banned-word result. The new browser regression reads the rendered page, checks that every audited copy unit is present, then validates the word counts, 22-word limit, and banned list. It does not assert source strings.
 
