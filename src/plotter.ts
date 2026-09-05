@@ -92,3 +92,14 @@ export function tableMarkup(source: string, values: number[]): string {
     return `<p class="inline-error">${error instanceof Error ? error.message : 'Values could not be calculated.'}</p>`;
   }
 }
+
+export function comparisonTableMarkup(firstLabel: string, firstSource: string, secondLabel: string, secondSource: string, values: number[]): string {
+  try {
+    const first = makeTable(firstSource, values);
+    const second = makeTable(secondSource, values);
+    const rows = first.map(({ x, y }, index) => `<tr><th scope="row">${formatNumber(x)}</th><td>${formatNumber(y)}</td><td>${formatNumber(second[index].y)}</td></tr>`).join('');
+    return `<div class="table-scroll"><table><caption>Compare ${firstLabel} and ${secondLabel}</caption><thead><tr><th scope="col">x</th><th scope="col">${firstLabel}</th><th scope="col">${secondLabel}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  } catch (error) {
+    return `<p class="inline-error">${error instanceof Error ? error.message : 'Values could not be calculated.'}</p>`;
+  }
+}

@@ -1,0 +1,79 @@
+[
+  {
+    "id": "demo-isolation",
+    "claim": "Try sample data without changing your notebook.",
+    "where": "Landing action and demo banner",
+    "test": "npm run test:claims -- --grep @claim:demo-isolation",
+    "sandbox": "Fresh browser context with real storage pre-seeded; open /demo, reset sample data, and prove the real key is unchanged."
+  },
+  {
+    "id": "twenty-drills",
+    "claim": "Includes 20 short maths-tool drills.",
+    "where": "Landing copy, practice heading, README",
+    "test": "npm run test:claims -- --grep @claim:twenty-drills",
+    "sandbox": "Open /demo and count its numbered practice controls and progress total."
+  },
+  {
+    "id": "four-tool-practice",
+    "claim": "Practise when to estimate, make a table, draw a graph, or check algebra.",
+    "where": "Landing description and README",
+    "test": "npm run test:claims -- --grep @claim:four-tool-practice",
+    "sandbox": "Open /demo and exercise one drill for each tool, observing its estimate, table, graph, or algebra work."
+  },
+  {
+    "id": "function-plotter-table",
+    "claim": "The function plotter gives a graph and an accessible value table.",
+    "where": "Plotter section and README",
+    "test": "npm run test:claims -- --grep @claim:function-plotter-table",
+    "sandbox": "Open /demo, plot a valid function, and verify the canvas name and populated table."
+  },
+  {
+    "id": "transfer-quiz",
+    "claim": "A six-question transfer quiz uses a five-out-of-six target.",
+    "where": "Transfer quiz section and README",
+    "test": "npm run test:claims -- --grep @claim:transfer-quiz",
+    "sandbox": "Open /demo, answer five of six correctly, and observe the 5/6 readiness result."
+  },
+  {
+    "id": "scratchpad-autosave",
+    "claim": "Scratchpad notes save in this browser as you type.",
+    "where": "Scratchpad section, Privacy, README",
+    "test": "npm run test:claims -- --grep @claim:scratchpad-autosave",
+    "sandbox": "Open /demo, type a note, reload, and observe the same note in the demo namespace."
+  },
+  {
+    "id": "text-export",
+    "claim": "Exports scratchpad notes as a text file.",
+    "where": "Scratchpad button and README",
+    "test": "npm run test:claims -- --grep @claim:text-export",
+    "sandbox": "Open /demo, set a note, download it, and read the downloaded text."
+  },
+  {
+    "id": "local-progress-reset",
+    "claim": "You can reset notebook progress and notes stored in this browser.",
+    "where": "Reset section and README",
+    "test": "npm run test:claims -- --grep @claim:local-progress-reset",
+    "sandbox": "Open /demo, alter sample notes, reset the demo, and observe restored sample progress and notes."
+  },
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after your first visit.",
+    "where": "Landing facts, Privacy, README",
+    "test": "npm run test:claims -- --grep @claim:offline-reload",
+    "sandbox": "Fresh browser context opens /demo online until service-worker controlled, switches offline, then reloads /demo."
+  },
+  {
+    "id": "no-account-or-third-party-runtime",
+    "claim": "Free to use with no account, payment, analytics, CDN assets, or third-party runtime requests.",
+    "where": "Landing facts, Privacy, README",
+    "test": "npm run test:claims -- --grep @claim:no-account-or-third-party-runtime",
+    "sandbox": "Record all requests during the full /demo flow and inspect cookies and payment or account controls."
+  },
+  {
+    "id": "data-stays-on-device",
+    "claim": "Notebook data stays on your device.",
+    "where": "Landing facts, demo banner, Privacy, README",
+    "test": "npm run test:claims -- --grep @claim:data-stays-on-device",
+    "sandbox": "Record requests while changing /demo data and prove writes use only the demo localStorage key."
+  }
+]

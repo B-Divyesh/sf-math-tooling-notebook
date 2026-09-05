@@ -5,13 +5,23 @@ export interface Progress {
   notes: string;
 }
 
-const key = 'math-tooling-notebook:v1';
+export const realStorageKey = 'math-tooling-notebook:v1';
+export const demoStorageKey = 'demo:math-tooling-notebook:v1';
 export const emptyProgress = (): Progress => ({ completed: [], quizAnswers: Array(6).fill(null), quizSubmitted: false, notes: '' });
 
-export function loadProgress(): { progress: Progress; warning?: string } {
+export function sampleProgress(): Progress {
+  return {
+    completed: [1, 2, 3, 4, 5],
+    quizAnswers: Array(6).fill(null),
+    quizSubmitted: false,
+    notes: 'I checked repeated growth with a table: at x = 4, 2^x = 16 and 3x = 12.\n\nNext: use a graph when I need to see a crossing or a turning point.',
+  };
+}
+
+export function loadProgress(key = realStorageKey): { progress: Progress; warning?: string; found: boolean } {
   try {
     const raw = localStorage.getItem(key);
-    if (!raw) return { progress: emptyProgress() };
+    if (!raw) return { progress: emptyProgress(), found: false };
     const data = JSON.parse(raw) as Partial<Progress>;
     return {
       progress: {
@@ -20,13 +30,14 @@ export function loadProgress(): { progress: Progress; warning?: string } {
         quizSubmitted: Boolean(data.quizSubmitted),
         notes: typeof data.notes === 'string' ? data.notes : '',
       },
+      found: true,
     };
   } catch {
-    return { progress: emptyProgress(), warning: 'Saved progress could not be read. You can keep working; new changes will replace the damaged local copy.' };
+    return { progress: emptyProgress(), warning: 'Saved progress could not be read. You can keep working; new changes will replace the damaged local copy.', found: true };
   }
 }
 
-export function saveProgress(progress: Progress): string | undefined {
+export function saveProgress(progress: Progress, key = realStorageKey): string | undefined {
   try {
     localStorage.setItem(key, JSON.stringify(progress));
   } catch {
@@ -34,6 +45,6 @@ export function saveProgress(progress: Progress): string | undefined {
   }
 }
 
-export function clearProgress(): void {
+export function clearProgress(key = realStorageKey): void {
   localStorage.removeItem(key);
 }

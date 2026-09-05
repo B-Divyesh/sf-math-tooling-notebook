@@ -1,59 +1,81 @@
 import './style.css';
 import { drills, quiz, toolInfo, type Tool } from './drills';
-import { drawPlot, tableMarkup, type PlotRange } from './plotter';
-import { clearProgress, loadProgress, saveProgress, type Progress } from './storage';
+import { comparisonTableMarkup, drawPlot, tableMarkup, type PlotRange } from './plotter';
+import { clearProgress, demoStorageKey, loadProgress, realStorageKey, sampleProgress, saveProgress, type Progress } from './storage';
 
 const root = document.querySelector<HTMLDivElement>('#app')!;
-const loaded = loadProgress();
+const isDemo = location.pathname === '/demo' || new URLSearchParams(location.search).get('demo') === '1';
+const storageKey = isDemo ? demoStorageKey : realStorageKey;
+const loaded = loadProgress(storageKey);
 let progress: Progress = loaded.progress;
 let storageWarning = loaded.warning ?? '';
+if (isDemo && (!loaded.found || loaded.warning)) {
+  progress = sampleProgress();
+  storageWarning = saveProgress(progress, storageKey) ?? '';
+}
 let currentId = drills.find((drill) => !progress.completed.includes(drill.id))?.id ?? 1;
 let selectedTool: Tool | null = null;
 let drillFeedback = '';
 let drillCorrect = false;
+let demoNotice = '';
 let plotExpression = 'sin(x) + 0.25*x';
 let plotRange: PlotRange = { xMin: -10, xMax: 10, yMin: -6, yMax: 6 };
 
 const escapeText = (value: string) => value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]!));
 
 function persist(): void {
-  const warning = saveProgress(progress);
+  const warning = saveProgress(progress, storageKey);
   if (warning) storageWarning = warning;
 }
 
+function setRouteMetadata(): void {
+  const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+  const url = isDemo ? `${location.origin}/demo` : `${location.origin}/`;
+  document.title = isDemo ? 'Demo — Math Tooling Notebook' : 'Math Tooling Notebook — choose maths tools';
+  if (canonical) canonical.href = url;
+  if (description) description.content = isDemo
+    ? 'Try five completed maths-tool drills with sample notes. Your regular notebook is not changed.'
+    : 'Choose when to estimate, make a table, draw a graph, or check algebra through hands-on maths drills.';
+  document.querySelectorAll<HTMLMetaElement>('meta[property="og:url"]').forEach((meta) => { meta.content = url; });
+}
+
 function render(): void {
+  setRouteMetadata();
   const drill = drills[currentId - 1];
   const completedCount = progress.completed.length;
   root.innerHTML = `
     <div class="offline-bar" id="offline-bar" role="status" hidden>You’re offline. The notebook still works; progress stays on this device.</div>
+    ${isDemo ? `<aside class="demo-banner" aria-label="Demo mode"><div><strong>Demo — sample data. Nothing is saved to your notebook.</strong><span>${escapeText(demoNotice || 'Five completed drills and a sample note are ready to inspect.')}</span></div><div class="demo-actions"><button class="text-button" type="button" data-action="reset-demo">Reset demo</button><button class="button compact demo-start" type="button" data-action="start-real">Start for real</button></div></aside>` : ''}
     <header class="site-header">
-      <a class="brand" href="#top" aria-label="Math Tooling Notebook home"><span class="brand-mark" aria-hidden="true">⌁</span><span>Math Tooling<br><small>Notebook</small></span></a>
+      <a class="brand" href="/" aria-label="Math Tooling Notebook home"><span class="brand-mark" aria-hidden="true">⌁</span><span>Math Tooling<br><small>Notebook</small></span></a>
       <nav aria-label="Primary navigation">
-        <a href="#practice">Drills</a><a href="#plotter">Plotter</a><a href="#transfer">Transfer quiz</a>
+        <a href="/demo#practice">Demo</a><a href="#practice">Drills</a><a href="#plotter">Plotter</a><a href="/privacy/">Privacy</a>
       </nav>
     </header>
     <main id="main">
       <section class="hero" id="top" aria-labelledby="page-title">
         <div class="hero-copy">
-          <p class="eyebrow"><span>Night service № 01</span> · tools before theory</p>
-          <h1 id="page-title">Find your route<br>through the maths.</h1>
-          <p class="hero-lead">Twenty short drills for learning when to <strong>estimate</strong>, build a <strong>table</strong>, draw a <strong>graph</strong>, or make an <strong>algebraic check</strong>.</p>
+          <p class="eyebrow"><span>Maths practice</span> · 20 short drills</p>
+          <h1 id="page-title">Choose the right maths tool</h1>
+          <p class="hero-lead">For adults returning to mathematics who need practical checks before a formal course.</p>
           <div class="hero-actions">
-            <a class="button primary" href="#practice">${completedCount ? 'Continue your route' : 'Begin at station 01'}</a>
-            <a class="button ghost" href="#how">See how it works</a>
+            <a class="button primary" href="/demo#practice">Try it with sample data</a>
+            <span class="action-result">See five completed drills and a filled scratchpad.</span>
+            <a class="button ghost" href="#practice">${completedCount ? 'Continue your notebook' : 'Start an empty notebook'}</a>
           </div>
-          <p class="local-note"><span aria-hidden="true">◆</span> No account. Your notes and progress stay in this browser.</p>
+          <ul class="plain-facts"><li>Free. No account or payment.</li><li>Notes and progress stay in this browser.</li><li>Works offline after your first visit.</li></ul>
         </div>
         <figure class="poster-frame">
           <picture>
             <img src="/assets/math-railway.webp" srcset="/assets/math-railway-400.webp 400w, /assets/math-railway.webp 600w" sizes="(max-width: 700px) min(88vw, 360px), 390px" width="600" height="900" alt="Abstract art-deco railway lines become four mathematical curves above an open notebook and drafting compass." decoding="async" fetchpriority="high" />
           </picture>
-          <figcaption>Four lines. One practical way into mathematical work.</figcaption>
+          <figcaption>The four tools used in this notebook.</figcaption>
         </figure>
       </section>
 
       <section class="method" id="how" aria-labelledby="how-title">
-        <div><p class="eyebrow">The working loop</p><h2 id="how-title">Inspect. Estimate. Represent. Verify.</h2></div>
+        <div><p class="eyebrow">How it works</p><h2 id="how-title">Choose a tool, then check your result</h2></div>
         <ol class="method-line">
           <li><span>1</span><strong>Read the job</strong><small>Name what you actually need.</small></li>
           <li><span>2</span><strong>Choose a tool</strong><small>Pick the lightest useful view.</small></li>
@@ -65,14 +87,14 @@ function render(): void {
 
       <section class="practice" id="practice" aria-labelledby="practice-title">
         <div class="section-heading">
-          <div><p class="eyebrow">Your route map</p><h2 id="practice-title">Twenty practice stations</h2></div>
+          <div><p class="eyebrow">Practice drills</p><h2 id="practice-title">20 drills for choosing a maths tool</h2></div>
           <div class="progress-summary" aria-label="${completedCount} of 20 drills complete">
             <span><strong>${completedCount}</strong> / 20 complete</span>
             <progress class="progress-track" aria-label="Drills completed" max="${drills.length}" value="${completedCount}">${completedCount} of ${drills.length}</progress>
           </div>
         </div>
         <div class="workbench">
-          <nav class="route-map" aria-label="Practice stations">
+          <nav class="route-map" aria-label="Practice drills">
             ${routeMarkup(currentId, progress.completed)}
           </nav>
           <article class="drill-panel" aria-labelledby="drill-title">
@@ -83,8 +105,8 @@ function render(): void {
 
       <section class="plotter-section" id="plotter" aria-labelledby="plotter-title">
         <div class="section-heading inverse">
-          <div><p class="eyebrow">Open workbench</p><h2 id="plotter-title">Function plotter</h2><p>Use the graph as an inspection tool, then read exact samples in the table.</p></div>
-          <span class="route-badge graph">Graph line · G</span>
+          <div><p class="eyebrow">Graph a function</p><h2 id="plotter-title">Function plotter</h2><p>Draw a graph, then read exact sample values in the table.</p></div>
+          <span class="route-badge graph">Graph tool</span>
         </div>
         <form class="plot-controls" id="plot-form">
           <label class="expression-field">Function <span class="math-prefix">y =</span><input id="plot-expression" name="expression" value="${escapeText(plotExpression)}" autocomplete="off" spellcheck="false" aria-describedby="syntax-help plot-error" /></label>
@@ -103,20 +125,20 @@ function render(): void {
 
       <section class="transfer" id="transfer" aria-labelledby="transfer-title">
         <div class="section-heading">
-          <div><p class="eyebrow">Final interchange</p><h2 id="transfer-title">Can you choose the route?</h2><p>Six situations, four tools. Aim for five correct—not for a certificate, but for a useful signal.</p></div>
+          <div><p class="eyebrow">Transfer quiz</p><h2 id="transfer-title">Choose the best tool for each problem</h2><p>Six situations use the same four tools. Five correct is a useful check.</p></div>
           ${progress.quizSubmitted ? quizScoreMarkup() : '<span class="route-badge">6 decisions</span>'}
         </div>
         <form id="quiz-form" class="quiz-list">
           ${quiz.map((item, index) => quizQuestionMarkup(item, index)).join('')}
           <div class="quiz-actions">
-            ${progress.quizSubmitted ? '<button type="button" class="button secondary" data-action="retry-quiz">Try the quiz again</button>' : '<button type="submit" class="button primary">Check my route choices</button>'}
+            ${progress.quizSubmitted ? '<button type="button" class="button secondary" data-action="retry-quiz">Try the quiz again</button>' : '<button type="submit" class="button primary">Check my tool choices</button>'}
             <p id="quiz-error" class="inline-error" role="alert"></p>
           </div>
         </form>
       </section>
 
       <section class="scratch-section" aria-labelledby="scratch-title">
-        <div class="scratch-copy"><p class="eyebrow">Always beside you</p><h2 id="scratch-title">Scratchpad</h2><p>Record a hunch, intermediate value, or check. It saves as you type—only on this device.</p></div>
+        <div class="scratch-copy"><p class="eyebrow">Working notes</p><h2 id="scratch-title">Scratchpad</h2><p>Record a hunch, intermediate value, or check. It saves as you type in this browser.</p></div>
         <div class="scratch-paper">
           <label for="scratchpad">Working notes</label>
           <textarea id="scratchpad" rows="9" placeholder="Example: Estimate first: 50 × 20 ≈ 1,000…">${escapeText(progress.notes)}</textarea>
@@ -124,11 +146,11 @@ function render(): void {
         </div>
       </section>
 
-      <section class="reset-zone" aria-labelledby="reset-title"><div><h2 id="reset-title">A route you can restart</h2><p>Reset all drill, quiz, and scratchpad data stored by this site on this browser.</p></div><button class="button ghost" type="button" data-action="reset-progress">Reset local notebook</button></section>
+      <section class="reset-zone" aria-labelledby="reset-title"><div><h2 id="reset-title">Reset your notebook</h2><p>Delete all drill, quiz, and scratchpad data stored by this site in this browser.</p></div><button class="button ghost" type="button" data-action="reset-progress">Reset local notebook</button></section>
     </main>
     <footer>
-      <div><span class="brand footer-brand"><span class="brand-mark" aria-hidden="true">⌁</span><span>Math Tooling<br><small>Notebook</small></span></span><p>A free, local-first practice utility from Param Factory.</p></div>
-      <div><p>Generated hero artwork is original to this product.</p><nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-math-tooling-notebook">Source</a></nav></div>
+      <div><span class="brand footer-brand"><span class="brand-mark" aria-hidden="true">⌁</span><span>Math Tooling<br><small>Notebook</small></span></span><p>Practice choosing maths tools before formal study.</p></div>
+      <div><p>Built by Param Factory · version 1.1.0</p><nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav></div>
     </footer>`;
 
   const scratchpad = document.querySelector<HTMLTextAreaElement>('#scratchpad');
@@ -154,23 +176,23 @@ function drillMarkup(drill: typeof drills[number]): string {
   const completed = progress.completed.includes(drill.id);
   const correctTool = selectedTool === drill.tool;
   return `
-    <div class="drill-head"><p class="station-number">Station ${String(drill.id).padStart(2, '0')} · ${escapeText(drill.zone)}</p>${completed ? '<span class="complete-stamp">✓ Complete</span>' : ''}</div>
+    <div class="drill-head"><p class="station-number">Drill ${String(drill.id).padStart(2, '0')} · ${escapeText(drill.zone)}</p>${completed ? '<span class="complete-stamp">✓ Complete</span>' : ''}</div>
     <h3 id="drill-title">${escapeText(drill.title)}</h3>
     <p class="drill-prompt">${escapeText(drill.prompt)}</p>
-    <fieldset class="tool-choice"><legend>Which tool should lead?</legend><p>Choose the lightest tool that answers this job directly.</p><div class="tool-grid">
+    <fieldset class="tool-choice"><legend>Which tool should you use first?</legend><p>Choose the simplest tool that answers this job directly.</p><div class="tool-grid">
       ${(Object.keys(toolInfo) as Tool[]).map((tool) => `<button type="button" data-tool="${tool}" class="tool-button ${selectedTool === tool ? 'selected' : ''}"><span aria-hidden="true">${toolInfo[tool].symbol}</span><strong>${toolInfo[tool].label}</strong><small>${toolInfo[tool].cue}</small></button>`).join('')}
     </div></fieldset>
-    <div class="tool-feedback ${correctTool ? 'success' : selectedTool ? 'try-again' : ''}" role="status" aria-live="polite">${selectedTool ? (correctTool ? `<strong>Good route: ${toolInfo[drill.tool].label}.</strong> ${escapeText(drill.why)}` : `<strong>Try another route.</strong> ${escapeText(toolInfo[selectedTool].label)} can help later, but ask which view answers this particular job most directly.`) : ''}</div>
+    <div class="tool-feedback ${correctTool ? 'success' : selectedTool ? 'try-again' : ''}" role="status" aria-live="polite">${selectedTool ? (correctTool ? `<strong>Good choice: ${toolInfo[drill.tool].label}.</strong> ${escapeText(drill.why)}` : `<strong>Try another tool.</strong> ${escapeText(toolInfo[selectedTool].label)} can help later, but choose the view that answers this job most directly.`) : ''}</div>
     ${correctTool ? workMarkup(drill, completed) : ''}`;
 }
 
 function workMarkup(drill: typeof drills[number], completed: boolean): string {
   let instrument = '';
   if (drill.tool === 'estimate') instrument = `<div class="estimate-ticket"><span>Quick bound</span><button type="button" class="text-button" data-action="reveal-estimate">Reveal the working</button><strong id="estimate-reveal" hidden>${escapeText(drill.estimate ?? '')}</strong></div>`;
-  if (drill.tool === 'table') instrument = `<div class="instrument-table">${tableMarkup(drill.expression!, drill.xValues!)}</div>`;
+  if (drill.tool === 'table') instrument = `<div class="instrument-table">${drill.comparison ? comparisonTableMarkup(drill.comparison.firstLabel, drill.comparison.firstExpression, drill.comparison.secondLabel, drill.comparison.secondExpression, drill.xValues!) : tableMarkup(drill.expression!, drill.xValues!)}</div>`;
   if (drill.tool === 'graph') instrument = `<div class="mini-plot-wrap"><canvas class="plot-canvas mini-plot" data-expression="${escapeText(drill.expression!)}" data-range="${drill.range!.join(',')}" width="640" height="320" role="img"></canvas>${tableMarkup(drill.expression!, sampleValues(drill.range![0], drill.range![1], 5))}</div>`;
   if (drill.tool === 'algebra') instrument = `<div class="algebra-strip"><span>Write → transform → substitute</span><code>${escapeText(drill.setup)}</code></div>`;
-  return `<section class="drill-work" aria-labelledby="work-title"><p class="eyebrow">Use the ${toolInfo[drill.tool].label.toLowerCase()} line</p><h4 id="work-title">${escapeText(drill.setup)}</h4>${instrument}<form id="drill-answer" class="answer-form"><fieldset><legend>${escapeText(drill.question)}</legend>${drill.options.map((option, index) => `<label class="answer-option"><input type="radio" name="answer" value="${index}" /><span>${escapeText(option)}</span></label>`).join('')}</fieldset><button class="button primary compact" type="submit">Check this answer</button><p class="answer-feedback ${drillCorrect ? 'success' : ''}" role="status">${escapeText(drillFeedback)}</p></form>${drillCorrect || completed ? `<aside class="explanation"><strong>Verification</strong><p>${escapeText(drill.explanation)}</p></aside><button class="button secondary" type="button" data-action="next-drill">${drill.id === 20 ? 'Go to transfer quiz' : 'Next station'}</button>` : ''}</section>`;
+  return `<section class="drill-work" aria-labelledby="work-title"><p class="eyebrow">Use ${toolInfo[drill.tool].label.toLowerCase()}</p><h4 id="work-title">${escapeText(drill.setup)}</h4>${instrument}<form id="drill-answer" class="answer-form"><fieldset><legend>${escapeText(drill.question)}</legend>${drill.options.map((option, index) => `<label class="answer-option"><input type="radio" name="answer" value="${index}" /><span>${escapeText(option)}</span></label>`).join('')}</fieldset><button class="button primary compact" type="submit">Check this answer</button><p class="answer-feedback ${drillCorrect ? 'success' : ''}" role="status">${escapeText(drillFeedback)}</p></form>${drillCorrect || completed ? `<aside class="explanation"><strong>Verification</strong><p>${escapeText(drill.explanation)}</p></aside><button class="button secondary" type="button" data-action="next-drill">${drill.id === 20 ? 'Go to transfer quiz' : 'Next drill'}</button>` : ''}</section>`;
 }
 
 function quizQuestionMarkup(item: typeof quiz[number], index: number): string {
@@ -181,7 +203,7 @@ function quizQuestionMarkup(item: typeof quiz[number], index: number): string {
 
 function quizScoreMarkup(): string {
   const score = quiz.filter((item, index) => progress.quizAnswers[index] === item.answer).length;
-  return `<div class="score-seal"><strong>${score}/6</strong><span>${score >= 5 ? 'Route ready' : 'Keep practising'}</span></div>`;
+  return `<div class="score-seal"><strong>${score}/6</strong><span>${score >= 5 ? 'Ready to practise' : 'Keep practising'}</span></div>`;
 }
 
 function sampleValues(min: number, max: number, count: number): number[] {
@@ -284,7 +306,19 @@ function handleAction(action: string): void {
     const blob = new Blob([progress.notes || 'Math Tooling Notebook\n\n(No scratchpad notes yet.)'], { type: 'text/plain' });
     const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'math-tooling-notes.txt'; link.click(); URL.revokeObjectURL(url);
   } else if (action === 'reset-progress') {
-    if (window.confirm('Reset all 20 drill stamps, quiz choices, and scratchpad notes on this browser?')) { clearProgress(); progress = { completed: [], quizAnswers: Array(6).fill(null), quizSubmitted: false, notes: '' }; currentId = 1; selectedTool = null; render(); location.hash = 'practice'; }
+    if (window.confirm('Reset all 20 drill stamps, quiz choices, and scratchpad notes in this browser?')) { clearProgress(storageKey); progress = { completed: [], quizAnswers: Array(6).fill(null), quizSubmitted: false, notes: '' }; currentId = 1; selectedTool = null; render(); location.hash = 'practice'; }
+  } else if (action === 'reset-demo') {
+    progress = sampleProgress();
+    saveProgress(progress, demoStorageKey);
+    currentId = 6;
+    selectedTool = null;
+    drillFeedback = '';
+    drillCorrect = false;
+    demoNotice = 'Sample reset. Your regular notebook was not changed.';
+    render();
+  } else if (action === 'start-real') {
+    clearProgress(demoStorageKey);
+    location.assign('/');
   }
 }
 
@@ -293,6 +327,10 @@ window.addEventListener('offline', updateOnlineStatus);
 window.addEventListener('resize', () => window.requestAnimationFrame(initializePlots));
 
 render();
+
+if (isDemo && location.hash === '#practice') {
+  window.requestAnimationFrame(() => document.querySelector('#practice')?.scrollIntoView({ block: 'start' }));
+}
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => undefined));

@@ -1,5 +1,5 @@
-const CACHE = 'math-tooling-notebook-v2';
-const SHELL = ['/', '/assets/math-railway.webp', '/assets/math-railway-400.webp', '/icon.svg', '/privacy/', '/terms/'];
+const CACHE = 'math-tooling-notebook-v3';
+const SHELL = ['/', '/demo', '/assets/math-railway.webp', '/assets/math-railway-400.webp', '/assets/math-notebook-preview.webp', '/icon.svg', '/apple-touch-icon.png', '/privacy/', '/terms/'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then(async (cache) => {
