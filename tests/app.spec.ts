@@ -45,6 +45,50 @@ test('notebook loads without browser console or page errors', async ({ page }) =
   expect(errors).toEqual([]);
 });
 
+test('landing copy audit is complete for the rendered notebook and passes plain-word checks', async ({ page }) => {
+  await openNotebook(page);
+  const audit = await readFile(new URL('../.factory/copy-audit.md', import.meta.url), 'utf8');
+  const entries = Array.from(audit.matchAll(/^\|\s*(.*?)\s*\|\s*(\d+)\s*\|\s*(Pass)\s*\|$/gm), ([, text, words, result]) => ({ text, words: Number(words), result }));
+  const wordCount = (text: string) => text.trim().split(/\s+/u).filter((token) => /[\p{L}\p{N}]/u.test(token)).length;
+  const banned = ['leverage', 'seamless', 'effortless', 'robust', 'powerful', 'intuitive', 'reimagine', 'supercharge', 'unlock', 'delightful', 'journey', 'ecosystem', 'AI-powered'];
+
+  expect(entries.length).toBeGreaterThan(70);
+  for (const entry of entries) {
+    expect(entry.words, entry.text).toBe(wordCount(entry.text));
+    expect(entry.words, entry.text).toBeLessThanOrEqual(22);
+    expect(entry.result, entry.text).toBe('Pass');
+    expect(entry.text.toLocaleLowerCase(), entry.text).not.toMatch(new RegExp(`\\b(?:${banned.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'i'));
+  }
+
+  const renderedCopy = await page.evaluate(() => {
+    const normalize = (text: string | null) => (text ?? '').replace(/\s+/g, ' ').trim();
+    const text = (selector: string) => Array.from(document.querySelectorAll<HTMLElement>(selector), (element) => normalize(element.innerText)).filter(Boolean);
+    const imageDescription = Array.from(document.querySelectorAll<HTMLImageElement>('.poster-frame img'), (image) => image.alt);
+    const quizPrompts = text('.quiz-question legend').map((prompt) => prompt.replace(/^\d+\s*/, ''));
+    const quizTools = text('.quiz-tools label').map((tool) => tool.replace(/^[^\p{L}]+/u, ''));
+    const placeholder = document.querySelector<HTMLTextAreaElement>('#scratchpad')?.placeholder ?? '';
+
+    return [...new Set([
+      normalize(document.querySelector('.skip-link')?.textContent),
+      ...text('.site-header .brand > span:last-child, .site-header nav a'),
+      ...text('.hero .eyebrow, .hero h1, .hero-lead, .hero-actions a, .action-result, .plain-facts li, .poster-frame figcaption'),
+      ...imageDescription,
+      ...text('.method .eyebrow, .method h2, .method-line strong, .method-line small'),
+      ...text('.practice .eyebrow, .practice h2, .route-map .zone-label, .station em, .station-number, #drill-title, .drill-prompt, .tool-choice legend, .tool-choice > p, .tool-button strong, .tool-button small'),
+      ...text('.plotter-section .eyebrow, .plotter-section h2, .plotter-section .section-heading p, .plot-controls label, .plot-controls button, #syntax-help'),
+      ...text('.transfer .eyebrow, .transfer h2, .transfer .section-heading p, .transfer .route-badge'),
+      ...quizPrompts,
+      ...quizTools,
+      ...text('.quiz-actions button'),
+      ...text('.scratch-copy .eyebrow, .scratch-copy h2, .scratch-copy p, .scratch-paper label, #save-status, .scratch-actions button'),
+      placeholder,
+      ...text('.reset-zone h2, .reset-zone p, .reset-zone button, footer .brand > span:last-child, footer p, footer nav a'),
+    ].filter(Boolean))];
+  });
+  const auditedCopy = new Set(entries.map(({ text }) => text.toLocaleLowerCase()));
+  expect(renderedCopy.filter((copy) => !auditedCopy.has(copy.toLocaleLowerCase()))).toEqual([]);
+});
+
 test('Station 02 accepts x = 4 and shows both compared values', async ({ page }) => {
   await openDemo(page);
   await page.getByRole('button', { name: /02.*See repeated growth/ }).click();
