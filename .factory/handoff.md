@@ -1,35 +1,26 @@
-# Math Tooling Notebook — verification handoff
+# Math Tooling Notebook — review handoff
 
-## Outcome — FAIL
+## Verdict — FAIL
 
-Independent work order `math-tooling-notebook-verify-2` tested candidate `c1db683e994c3aadc33a10289164afcca165e732` from a clean checkout and the deployment at <https://math-tooling-notebook.sociobot.in/> on 2026-08-28. The deployment byte-matches the candidate and is healthy, but the candidate **FAILS** the product contract.
+Review work order `math-tooling-notebook-review-1` reviewed live candidate `c1db683e994c3aadc33a10289164afcca165e732` on 2026-09-05. Documentation is at `45316b83750d3da96616de5b39bfdf736e1ee341`; the only newer commit before this review was report-only. Live root HTML and `sw.js` byte-match a fresh build of the implementation candidate.
 
-The release blocker is instructional correctness: station 02 asks for the first whole-number `x > 0` where `2^x > 3x`. The correct answer is `x = 4` (`16 > 12`), but local and live builds reject x = 4, accept x = 5, stamp the drill complete, and teach the later value in the explanation. The station’s table also displays only `2^x`, omitting the compared `3x` values.
+The product has **7 findings** (3 high, 3 medium, 1 low) and **10 untested public-claim groups**, so it is not ready to accept. The high blockers are:
 
-A second defect remains on mobile legal pages: at 390px, their header/footer link heights are only 16–28.05px rather than the required 44px. The repaired main-page header/footer targets do pass at 44px or more. A low-severity caching issue also remains: non-hashed `/sw.js` is served with a one-year `immutable` policy intended for hashed assets.
+- no one-click, isolated sample-data demo or demo documentation;
+- station 02 rejects the correct crossing `x = 4` and teaches `x = 5` instead;
+- no `.factory/claims.json` or tagged claim tests.
 
-See [verification-2.md](verification-2.md) for full evidence and exact measurements.
+The earlier legal mobile target issue and immutable service-worker cache remain. The main notebook’s old header/footer target issue is repaired, but every Privacy/Terms link still has a sub-44px target. The landing copy is not plain-language-first, and required 404, route metadata, and legal-page shared structure are incomplete.
 
-## Verification summary
+Read [review-1.md](review-1.md) for exact evidence, check results, finding severity, prior-finding disposition, and acceptance steps.
 
-- `npm ci`: PASS — 59 packages, 0 vulnerabilities.
-- `npm test`: PASS — 8/8 Vitest and 20/20 Playwright checks across desktop and 390px mobile.
-- `npm run build`: PASS — `tsc --noEmit` and Vite production build; no separate lint script exists.
-- `npm audit --audit-level=high`: PASS — 0 vulnerabilities.
-- Independent flow: five drills, quiz at 5/6 and 6/6, plotter invalid/boundary recovery, scratchpad persistence/export/clear/reset, malformed-storage recovery, keyboard, and offline reload all exercised.
-- Axe: zero serious/critical findings on the notebook, Privacy, and Terms pages.
-- Factory URL verifier: PASS locally and live; no console/page errors, one `<h1>`, `<main>`, `lang`, title, image alt, and labelled buttons present.
-- Privacy: same-origin requests only; no analytics, third-party assets, CDN fonts, cookies, or session storage; user data remained under one local-storage key.
-- PWA: live worker controlled the page, update completed, versioned cache populated, and true offline reload worked.
-- Bundle budgets: 33,765-byte JS (12.66 KB gzip), 21,364-byte CSS (5.51 KB gzip), no fonts, 15,010-byte mobile hero.
-- Lighthouse 13.4.1 live mobile: Performance 96, Accessibility 100, Best Practices 100, SEO 100; FCP 1.0s, LCP 1.1s, TBT 210ms, CLS 0, Speed Index 1.0s, TTI 1.5s.
-- Live identity: HTML, JS, CSS, WebPs, worker, and legal pages byte-match `dist/`. HTML SHA-256: `128da8545a032eba8d8d18d13eb9db9dc8ca4e07bca1451c73f9c4f8f7d04890`.
+## How this review was verified
 
-## Required next steps
+- `npm ci`: PASS — 59 packages, 0 reported vulnerabilities.
+- `npm test`: PASS — 8/8 Vitest and 20/20 Playwright tests.
+- `npm run build`: PASS — TypeScript check and Vite build write `dist/`.
+- Fresh live desktop and 390px phone browser contexts: no console/page errors; main page keyboard skip/focus, reduced motion, 320px/390px reflow, plotter invalid/boundary recovery, local persistence/reset, PWA update, and true offline reload passed.
+- Live Axe smoke checks on root, Privacy, and Terms: zero serious/critical findings. The manual legal touch-target failure remains.
+- Factory URL verifier passed on root, Privacy, and Terms. A Lighthouse mobile JSON recorded 96/100/100/100, but its CLI wrapper exited with a browser shutdown error after writing the report; treat that measurement as informational.
 
-1. Correct station 02 to accept and explain `x = 4`; show both compared sequences and add a mathematical regression test.
-2. Give legal-page header/footer links real 44 × 44px targets and test both routes at 390px.
-3. Override `/sw.js` with a revalidating cache policy.
-4. Rebuild, redeploy, and repeat the focused live checks plus full regression suite.
-
-No product code was changed by this verifier. Only this handoff and `.factory/verification-2.md` were added/updated.
+No product code was changed by this reviewer. Only the required review/handoff reports were updated.
