@@ -37,6 +37,8 @@ Clean setup used Node `v22.23.2` and `npm ci` (59 packages; 0 reported vulnerabi
 | `npm run build` | PASS — type check passed and created `dist/index.html`. Initial JS: 36.27 KB (13.34 KB gzip); CSS: 22.48 KB (5.72 KB gzip). |
 | Each declared claim command | PASS — all 11 commands below passed independently in both browser projects. |
 | Local accessibility | PASS — the suite's Axe check found zero serious or critical violations on root, Privacy, Terms, and 404. Keyboard, focus, reduced-motion, mobile target, and no-overflow checks passed. |
+| Factory URL verifier | PASS — fresh live root returned 200 in 543ms with the required title, `lang=en`, one h1, main landmark, image alt text, labelled buttons, and zero console errors. |
+| Live mobile Axe | PASS — root, Demo, Privacy, Terms, and the designed 404 had zero serious or critical violations. |
 | Live HTTPS routes | PASS — `/`, `/demo`, `/privacy/`, and `/terms/` returned 200; deliberate `/not-a-real-page` returned the designed HTTP 404. |
 | Live security/cache | PASS — `/sw.js` returned `no-cache` with the existing CSP and HSTS headers. |
 | Live identity | PASS — final local root and JS SHA-256 values exactly match live: `b1cf4bbd413cabab5d1667ac7f160b8f3d71d5b8b45158c07882aba8370f3a25` and `ecc536d739c0037bc18c4360608541c1f3d126ee65986c6f42ae31c08283231b`. |
