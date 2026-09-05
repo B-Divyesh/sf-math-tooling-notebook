@@ -4,7 +4,7 @@
 
 **Ready for review.** The implementation commit is `e46de7eb48ad295357549cedb83ba4ce44b529a7`. It was deployed to <https://math-tooling-notebook.sociobot.in> on 2026-09-05. The live root HTML and deployed JavaScript byte-match the final local `dist/` build.
 
-This document is committed separately from the implementation so review evidence does not change the deployed artifact. Its documentation commit is recorded in the final attestation commit.
+This document is committed separately from the implementation so review evidence does not change the deployed artifact. The documentation verification commit is `2c3e8f9091935d7bf8d9788b8a48087213d9376c`; this final attestation only records that SHA.
 
 ## Product job, audience, and first action
 
